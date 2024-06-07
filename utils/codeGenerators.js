@@ -2,46 +2,49 @@ const Product = require('../models/Product');
 const Sale = require('../models/Sale');
 const Supplier = require('../models/Supplier');
 
-// Utility function to generate sequential codes
-const generateSequentialCode = async (prefix, model) => {
+const generateSequentialCode = async (prefix, model, codeField = 'code') => {
   try {
     const lastRecord = await model.findOne().sort({ _id: -1 });
     let nextNumber = 1;
-    if (lastRecord && lastRecord.code) {
-      const lastNumber = parseInt(lastRecord.code.replace(prefix, ''), 10);
-      nextNumber = isNaN(lastNumber) ? 1 : lastNumber + 1; // Kiểm tra NaN và đặt giá trị mặc định nếu cần
+
+    // Determine the last number used in the code field
+    if (lastRecord && lastRecord[codeField]) {
+      const lastNumber = parseInt(lastRecord[codeField].replace(prefix, ''), 10);
+      nextNumber = isNaN(lastNumber) ? 1 : lastNumber + 1;
     }
-    const nextCode = prefix + nextNumber.toString().padStart(5, '0');
+
+    // Generate a new unique code
+    let nextCode;
+    let isUnique = false;
+    do {
+      nextCode = `${prefix}${String(nextNumber).padStart(5, '0')}`;
+      const existingRecord = await model.findOne({ [codeField]: nextCode });
+      if (!existingRecord) {
+        isUnique = true;
+      } else {
+        nextNumber++;
+      }
+    } while (!isUnique);
+
     return nextCode;
   } catch (error) {
     throw new Error('Error generating code: ' + error.message);
   }
 };
 
-// Generate a unique order code for Sale
+// Function to generate a unique order code for Sales
 const generateOrderCode = async () => {
-  try {
-    const lastSale = await Sale.findOne().sort({ _id: -1 });
-    let nextNumber = 1;
-    if (lastSale && lastSale.orderCode) {
-      const lastNumber = parseInt(lastSale.orderCode.replace('ORD', ''), 10);
-      nextNumber = isNaN(lastNumber) ? 1 : lastNumber + 1; // Kiểm tra NaN và đặt giá trị mặc định nếu cần
-    }
-    const newOrderCode = `ORD${String(nextNumber).padStart(5, '0')}`;
-    return newOrderCode;
-  } catch (error) {
-    throw new Error('Error generating order code: ' + error.message);
-  }
+  return await generateSequentialCode('ORD', Sale, 'orderCode');
 };
 
-// Generate a unique product code for Product
+// Function to generate a unique product code for Products
 const generateProductCode = async () => {
-  return await generateSequentialCode('PRD', Product);
+  return await generateSequentialCode('PRD', Product, 'code');
 };
 
-// Generate a unique supplier code for Supplier
+// Function to generate a unique supplier code for Suppliers
 const generateSupplierCode = async () => {
-  return await generateSequentialCode('SUP', Supplier);
+  return await generateSequentialCode('SUP', Supplier, 'code');
 };
 
 module.exports = {

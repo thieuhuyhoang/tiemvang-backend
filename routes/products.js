@@ -9,6 +9,7 @@ router.post('/', async (req, res) => {
   const { name, totalWeight, khốiLượngHột, supplier } = req.body;
 
   if (!name || !totalWeight || !khốiLượngHột || !supplier) {
+    console.error('Validation Error: Missing required fields.');
     return res.status(400).send({ error: 'Name, TotalWeight, KhốiLượngHột, and Supplier are required fields.' });
   }
 
@@ -17,10 +18,12 @@ router.post('/', async (req, res) => {
     const goldWeight = totalWeight - khốiLượngHột;
     const product = new Product({ name, totalWeight, khốiLượngHột, supplier, goldWeight, code: productCode });
 
-    await product.save(); // Lưu sản phẩm vào cơ sở dữ liệu
+    console.log('Saving Product:', product);
 
+    await product.save();
     res.status(201).send(product);
   } catch (error) {
+    console.error('Error adding product:', error); // Detailed error logging
     res.status(400).send({ error: error.message });
   }
 });

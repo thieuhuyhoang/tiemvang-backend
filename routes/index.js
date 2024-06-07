@@ -1,13 +1,13 @@
+// routes/index.js
 const express = require('express');
-const supplierRoutes = require('./suppliers');
-const productRoutes = require('./products');
-const saleRoutes = require('./sales'); // New sale routes
+const salesRoutes = require('./sales');
+const productsRoutes = require('./products');
+const suppliersRoutes = require('./suppliers');
 
 const router = express.Router();
 
-router.use('/suppliers', supplierRoutes);
-router.use('/products', productRoutes);
-router.use('/sales', saleRoutes); // Use sale routes
+router.use('/sales', salesRoutes);
+router.use('/products', productsRoutes);
+router.use('/suppliers', suppliersRoutes);
 
-  
 module.exports = router;
